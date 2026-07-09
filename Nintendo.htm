@@ -12,6 +12,8 @@
     <meta name="theme-color" content="#000">
     <meta name="description" content="JavaScript Nintendo Emulator.">
     <meta name="keywords" content="javascript, nintendo, emulator">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, minimum-scale=1.0"
@@ -93,7 +95,7 @@
           />
         </svg>
       </button>
-      <input type="file" id="romfile-input" accept=".nes,application/octet-stream">
+      <input type="file" id="romfile-input" accept=".nes,.zip,application/octet-stream">
     </div>
     <script src="Nintendo.min.js"></script>
     <script>
@@ -113,7 +115,7 @@
       }
 
       window.addEventListener("load", function () {
-        if (window.top === window.self) {
+        if (window.top === window.self||true) {
           container.style.display = "block"
 
           var currentURL = new URL(window.location.href).searchParams
@@ -152,24 +154,24 @@
                   loadText: "LOAD",
                   saveText: "SAVE",
                   player1: {
+                    up: "KeyW",
+                    down: "KeyS",
+                    left: "KeyA",
+                    right: "KeyD",
+                    a: "KeyK",
+                    b: "KeyJ",
+                    start: "Space",
+                    select: "ShiftLeft",
+                  },
+                  player2: {
                     up: "ArrowUp",
                     down: "ArrowDown",
                     left: "ArrowLeft",
                     right: "ArrowRight",
-                    select: "KeyA",
-                    start: "KeyS",
-                    a: "KeyX",
-                    b: "KeyZ",
-                  },
-                  player2: {
-                    up: "Numpad8",
-                    down: "Numpad2",
-                    left: "Numpad4",
-                    right: "Numpad6",
-                    select: "Numpad1",
-                    start: "Numpad3",
-                    a: "Numpad7",
-                    b: "Numpad9",
+                    a: "KeyG",
+                    b: "KeyF",
+                    start: "Enter",
+                    select: "ShiftRight",
                   },
                   cbStarted: function cbStarted() {
                     pleaseWait.style.display = "none"
@@ -188,7 +190,7 @@
           })
 
           romFileInput.addEventListener("change", function (event) {
-            var validExtensions = [".nes"]
+            var validExtensions = [".nes", ".zip"]
             var fileExtension = event.target.files[0].name.toLowerCase()
             var isValid = false
 
@@ -208,10 +210,35 @@
 
             var filereader = new FileReader()
             filereader.addEventListener("load", function () {
+              var fileData = filereader.result
+
+              if (fileExtension.endsWith(".zip")) {
+                JSZip.loadAsync(fileData).then(function (zip) {
+                  var romFile = Object.keys(zip.files).find(function (filename) {
+                    return filename.toLowerCase().endsWith(".nes")
+                  })
+
+                  if (!romFile) {
+                    alert("No valid .nes file found inside the zip!")
+                    romFileInput.value = null
+                    container.style.display = "block"
+                    return
+                  }
+
+                  zip.file(romFile).async("arraybuffer").then(function (unzippedData) {console.log(1);
+                    launchEmulator(romFile, unzippedData)
+                  })
+                })
+              } else {console.log(2);
+                launchEmulator(event.target.files[0].name, fileData)
+              }
+            })
+            
+            function launchEmulator(fileName, romData) {
               embedNintendo({
                 container: "game",
-                name: event.target.files[0].name,
-                rom: filereader.result,
+                name: fileName,
+                rom: romData,
                 soundEnabled: true,
                 showMobileControls: isMobileDevice(),
                 backText: "BACK",
@@ -219,43 +246,49 @@
                 loadText: "LOAD",
                 saveText: "SAVE",
                 player1: {
+                  up: "KeyW",
+                  down: "KeyS",
+                  left: "KeyA",
+                  right: "KeyD",
+                  a: "KeyK",
+                  b: "KeyJ",
+                  start: "Space",
+                  select: "ShiftLeft",
+                },
+                player2: {
                   up: "ArrowUp",
                   down: "ArrowDown",
                   left: "ArrowLeft",
                   right: "ArrowRight",
-                  select: "KeyA",
-                  start: "KeyS",
-                  a: "KeyX",
-                  b: "KeyZ",
-                },
-                player2: {
-                  up: "Numpad8",
-                  down: "Numpad2",
-                  left: "Numpad4",
-                  right: "Numpad6",
-                  select: "Numpad1",
-                  start: "Numpad3",
-                  a: "Numpad7",
-                  b: "Numpad9",
+                  a: "KeyG",
+                  b: "KeyF",
+                  start: "Enter",
+                  select: "ShiftRight",
                 },
                 cbStarted: function cbStarted() {
                   pleaseWait.style.display = "none"
                   romFileInput.value = null
                 },
               })
-            })
+            }
 
             filereader.readAsArrayBuffer(event.target.files[0])
-          })
+          }
+          )
+window.addEventListener('beforeunload', (event) => event.preventDefault());
 
           document.addEventListener("keydown", function (event) {
             var KEY_CTRL = event.ctrlKey || event.metaKey
-            var KEY_1 = event.code === "Digit1"
-            var KEY_2 = event.code === "Digit2"
-            var KEY_3 = event.code === "Digit3"
+            var KEY_1 = event.code === "KeyS"
+            var KEY_2 = event.code === "KeyQ"
+            var KEY_3 = event.code === "KeyP"
             var KEY_F = event.code === "KeyF"
             var KEY_R = event.code === "KeyR"
+            var KEY_W = event.code === "KeyW"
 
+            if (KEY_CTRL && KEY_W) 
+              event.preventDefault()
+            
             if (KEY_CTRL && KEY_1) {
               event.preventDefault()
               downloadStateNintendo()
