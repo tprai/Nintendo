@@ -91,6 +91,7 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
   globals.window["NINTENDO_PAUSED"] = false
   globals.window["NINTENDO_MUTED"] = false
   globals.window["NINTENDO_ANIMATION_FRAME_ID"] = null
+  globals.window["NINTENDO_SIMULATION_SPEED"] = 1
 
   // Video state
   globals.window["NINTENDO_VIDEO_WIDTH"] = 256
@@ -607,6 +608,7 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
   globals.window["stopLoopNintendo"] = stopLoopNintendo
 
   function runFrame(timestamp) {
+      
     if (!globals.window["NINTENDO_RUNNING"] || globals.window["NINTENDO_PAUSED"]) {
       return
     }
@@ -623,6 +625,8 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
       globals.window["NINTENDO_LAST_FRAME_TIME"] +
       globals.window["NINTENDO_FRAME_INTERVAL"]
 
+  var cycles = globals.window["NINTENDO_SIMULATION_SPEED"];
+  for (var c = 0; c < cycles; c++) {
     Module._retro_run()
 
     // Flush any remaining audio samples from the single-sample callback
@@ -630,7 +634,7 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
       pushAudio(new Float32Array(globals.window["NINTENDO_AUDIO_BUFFER_QUEUE"]))
       globals.window["NINTENDO_AUDIO_BUFFER_QUEUE"] = []
     }
-  }
+  }}
 
   function embedNintendo(config) {
     // Validate config object (required)
@@ -772,8 +776,13 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
         globals.window["NINTENDO_VIDEO_WIDTH"]
       globals.window["NINTENDO_CANVAS"].height =
         globals.window["NINTENDO_VIDEO_HEIGHT"]
-      globals.window["NINTENDO_CANVAS"].style.width = "100%"
-      globals.window["NINTENDO_CANVAS"].style.height = "100%"
+  globals.window["NINTENDO_CANVAS"].style.position = "absolute"
+  globals.window["NINTENDO_CANVAS"].style.top = "50%"
+  globals.window["NINTENDO_CANVAS"].style.left = "50%"
+  globals.window["NINTENDO_CANVAS"].style.transform = "translate(-50%, -50%)"
+  globals.window["NINTENDO_CANVAS"].style.height = "100vh"
+  globals.window["NINTENDO_CANVAS"].style.width = "calc(100vh/3*4)"
+      
       globals.window["NINTENDO_CANVAS"].addEventListener(
         "contextmenu",
         function (event) {
@@ -819,11 +828,6 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
           restoreMargin = true
         }
 
-        // --- Canvas ---
-        globals.window["NINTENDO_CANVAS"].style.position = "absolute"
-        globals.window["NINTENDO_CANVAS"].style.width = width + "px"
-        globals.window["NINTENDO_CANVAS"].style.height = height + "px"
-        globals.window["NINTENDO_CANVAS"].style.zIndex = "9997"
 
         // --- Restore margins after resize (Safari only) ---
         if (restoreMargin) {
@@ -867,6 +871,14 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
       })
 
       document.addEventListener("keydown", function (e) {
+         if (e.code === "Backquote") {
+          e.preventDefault(); 
+          globals.window["NINTENDO_SIMULATION_SPEED"] = 16;
+        }
+        else if (e.key === "Tab") {
+          e.preventDefault(); 
+          globals.window["NINTENDO_SIMULATION_SPEED"] = 4;
+        }
         if (globals.window["NINTENDO_KEYMAP1"][e.code] !== undefined) {
           e.preventDefault()
           globals.window["NINTENDO_KEYSTATE1"][
@@ -892,6 +904,11 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
       })
 
       document.addEventListener("keyup", function (e) {
+        if (e.key === "Tab") {
+          e.preventDefault();
+          globals.window["NINTENDO_SIMULATION_SPEED"] = 1;
+        }
+        
         if (globals.window["NINTENDO_KEYMAP1"][e.code] !== undefined) {
           e.preventDefault()
           globals.window["NINTENDO_KEYSTATE1"][
@@ -1440,7 +1457,7 @@ var JoyStick = function JoyStick(t, e) {var i = void 0 === (e = e || {}).title ?
             // Reset audio timing to avoid crackling after state load
             globals.window["NINTENDO_AUDIO_NEXT_TIME"] = 0
             globals.window["NINTENDO_AUDIO_BUFFER_QUEUE"] = []
-          } catch (error) {
+          } catch (error) {push
             //
           }
         })
