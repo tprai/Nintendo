@@ -12,13 +12,24 @@
     <meta name="theme-color" content="#000">
     <meta name="description" content="JavaScript Nintendo Emulator.">
     <meta name="keywords" content="javascript, nintendo, emulator">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, minimum-scale=1.0"
     >
     <style>
+     .info {
+       position:absolute;
+       top:10px;
+       left:10px;
+       padding:10px 16px;
+          color: white;
+          background-color:#22a333;
+       border: 5px solid #156b29;
+       text-align:center;
+       border-radius: 10px;
+  transition: background-color 0.3s ease-out;
+      }
       *{scrollbar-width:none;-ms-overflow-style:none}
       *::-webkit-scrollbar{display:none}
 
@@ -97,23 +108,16 @@
       </button>
       <input type="file" id="romfile-input" accept=".nes,.zip,application/octet-stream">
     </div>
-    <script src="Nintendo.min.js"></script>
+    <p hidden id="saved" class="info" >state saved</p>
+    <p hidden id="loaded" class="info">state loaded</p>
+    <script src="main.js"></script>
     <script>
       var container = document.getElementById("container")
       var demoLoader = document.getElementById("demo-loader")
       var fileSelector = document.getElementById("file-selector")
       var romFileInput = document.getElementById("romfile-input")
       var pleaseWait = document.querySelector(".pleasewait")
-
-      function isMobileDevice() {
-        return !!(
-          navigator.userAgent.match(/Android/i) ||
-          navigator.userAgent.match(/iPhone/i) ||
-          navigator.userAgent.match(/iPad/i) ||
-          navigator.userAgent.match(/iPod/i)
-        )
-      }
-
+    
       window.addEventListener("load", function () {
         if (window.top === window.self||true) {
           container.style.display = "block"
@@ -148,7 +152,6 @@
                   name: gameURL,
                   rom: xhr.response,
                   soundEnabled: true,
-                  showMobileControls: isMobileDevice(),
                   backText: "BACK",
                   soundText: "SOUND",
                   loadText: "LOAD",
@@ -162,6 +165,8 @@
                     b: "KeyJ",
                     start: "Space",
                     select: "ShiftLeft",
+                    aturbo: "KeyI",
+                    bturbo: "KeyU",
                   },
                   player2: {
                     up: "ArrowUp",
@@ -240,7 +245,6 @@
                 name: fileName,
                 rom: romData,
                 soundEnabled: true,
-                showMobileControls: isMobileDevice(),
                 backText: "BACK",
                 soundText: "SOUND",
                 loadText: "LOAD",
@@ -254,6 +258,8 @@
                   b: "KeyJ",
                   start: "Space",
                   select: "ShiftLeft",
+                    aturbo: "KeyI",
+                    bturbo: "KeyU",
                 },
                 player2: {
                   up: "ArrowUp",
@@ -267,7 +273,8 @@
                 },
                 cbStarted: function cbStarted() {
                   pleaseWait.style.display = "none"
-                  romFileInput.value = null
+                  r
+                  omFileInput.value = null
                 },
               })
             }
