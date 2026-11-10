@@ -230,11 +230,11 @@
                     return
                   }
 
-                  zip.file(romFile).async("arraybuffer").then(function (unzippedData) {console.log(1);
+                  zip.file(romFile).async("arraybuffer").then(function (unzippedData) {
                     launchEmulator(romFile, unzippedData)
                   })
                 })
-              } else {console.log(2);
+              } else {
                 launchEmulator(event.target.files[0].name, fileData)
               }
             })
